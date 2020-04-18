@@ -26,6 +26,19 @@ func newOption(f func(*Plug)) *funcOption {
 	}
 }
 
+// WithConfiguredAPI runs generated API configuration function of swagger server.
+// Normally it runs functions defined in `configure_*.go` file, where you has to
+// define your handlers and settings in a classic go-swagger generated server.
+//
+// You may add this option if you want to setup some defaults defined there.
+// But you don't need it if you set up the server configuration yourself
+// using the Plugger
+func WithConfiguredAPI() Option {
+	return newOption(func(p *Plug) {
+		p.s.ConfigureAPI()
+	})
+}
+
 func setServerParam(srvVal reflect.Value, key string, value interface{}) {
 	if rHost := reflect.Indirect(srvVal).FieldByName(key); rHost.CanSet() {
 		rHost.Set(reflect.ValueOf(value))
@@ -44,7 +57,7 @@ func WithPort(port int) Option {
 }
 
 // WithHost the IP to listen on
-func WithHost(host int) Option {
+func WithHost(host string) Option {
 	return newParamOption("Host", host)
 }
 

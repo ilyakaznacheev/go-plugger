@@ -1,7 +1,6 @@
 package plugger
 
 import (
-	"net/http"
 	"reflect"
 )
 
@@ -12,6 +11,9 @@ type Plug struct {
 }
 
 // NewPlug creates a new Swagger API plug
+//
+// a server is a code-generated go-swagger server.
+//
 func NewPlug(s Server, opts ...Option) *Plug {
 	// the current go-swagger version doesn't provide
 	// access to the exported fields via methods,
@@ -31,14 +33,10 @@ func NewPlug(s Server, opts ...Option) *Plug {
 	return p
 }
 
-// SetMiddleware adds middleware for certain path
-func (p *Plug) SetMiddleware(path string, mw func(http.Handler) http.Handler, methods ...string) *Plug {
-	for _, m := range methods {
-		p.s.AddMiddlewareFor(m, path, mw)
-	}
-	return p
-}
-
 func (p *Plug) Serve() error {
 	return p.s.Serve()
+}
+
+func (p *Plug) Shutdown() error {
+	return p.s.Shutdown()
 }
