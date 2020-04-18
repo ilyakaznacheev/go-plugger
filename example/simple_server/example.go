@@ -4,6 +4,7 @@ import (
 	"log"
 
 	"github.com/go-openapi/loads"
+	"github.com/go-openapi/runtime/middleware"
 
 	"github.com/ilyakaznacheev/go-plugger"
 	"github.com/ilyakaznacheev/go-plugger/example/simple_server/restapi"
@@ -18,18 +19,27 @@ func main() {
 		log.Fatal(err)
 	}
 	// generate swagger-API handler
-	swagger := operations.NewGreetingServerAPI(swaggerSpec)
+	api := operations.NewGreetingServerAPI(swaggerSpec)
 
-	// generate go-swagger server
-	srv := restapi.NewServer(swagger)
+	// simple handler based on code-generated types
+	api.GetGreetingHandler = operations.GetGreetingHandlerFunc(
+		func(param operations.GetGreetingParams) middleware.Responder {
+			return operations.NewGetGreetingOK().
+				WithPayload("Hi from simple example")
+		})
+
+	// create go-swagger server
+	// no need to set api to server yet
+	// because the Plugger will set API to the server
+	// just create it to initialize properly
+	srv := restapi.NewServer(nil)
 
 	// wrap it to make plugable
 	//
 	// provide some server parameters as plugger options
-	plug := plugger.NewPlug(srv,
-		plugger.WithConfiguredAPI(),
+	plug := plugger.NewPlug(srv, api,
 		plugger.WithHost("localhost"),
-		plugger.WithPort(8888))
+		plugger.WithPort(8000))
 	defer plug.Shutdown()
 
 	// run server
